@@ -1,4 +1,4 @@
-THE LOTTO GAME
+**LOTTO GAME**
 
 The game Lotto is a game of chance where each bettor selects six different numbers. If those numbers match the drawn numbers, the bettor wins the accumulated prize for that round.
 
