@@ -4,7 +4,7 @@ The game Lotto is a game of chance where each bettor selects six different numbe
 
 The Practical Work consists of simulating a drawing of the mentioned game and informing the winners. For this, six whole numbers between 0 and 41 will be randomly generated, which must not be repeated. Once these winning numbers are obtained, the file "apuestas.txt" containing the bets for that round will be processed. The file is in CSV format and each line contains the following data:
 
-<ID of the bettor>;<agency code>;<No 1>;<No 2>;<No 3>;<No 4>;<No 5>;<No 6>
+<ID(of tthe bettor)>;<agency(code)>;<No 1>;<No 2>;<No 3>;<No 4>;<No 5>;<No 6>
 
 Example: 34151620;31814;40;0;22;5;19;8
 
