@@ -1,15 +1,100 @@
-**LOTTO GAME**
+# LOTTO GAME
 
-The game Lotto is a game of chance where each bettor selects six different numbers. If those numbers match the drawn numbers, the bettor wins the accumulated prize for that round.
+## Introduction
 
-Consists of simulating a drawing of the mentioned game and informing the winners. For this, six whole numbers between 0 and 41 will be randomly generated, which must not be repeated. Once these winning numbers are obtained, the file "apuestas.txt" containing the bets for that round will be processed. The file is in CSV format and each line contains the following data:
+Welcome to py-Lottery, a Python-based lottery game inspired by "Loto Plus" and the "Lotería de la Ciudad de Buenos Aires". This repository contains a script that simulates a lottery drawing, identifies winners based on their matching numbers, and allows interaction through a menu-driven interface. The program uses the `colorama` library to enhance terminal output with colors.
 
-<ID(of tthe bettor)>;<agency(code)>;<No 1>;<No 2>;<No 3>;<No 4>;<No 5>;<No 6>
+## Features
 
-Example: 34151620;31814;40;0;22;5;19;8
+- **Menu Interface**: Provides options to view drawn numbers, winners, participating agencies, and create a file with agency details.
+- **Random Number Drawing**: Implements a recursive function to draw unique lottery numbers.
+- **Winner Identification**: Reads participant entries from a file, identifies winners based on the highest number of matches, and counts bets per agency.
+- **Ticket Printing**: Displays the drawn numbers in a formatted ticket.
+- **File Creation**: Generates a file listing agencies and the number of participants for each.
 
-The program generates the winning numbers, process the betting file, and determine the bettors who matched 6 numbers. If there are none, it searchs for bettors with 5 matches, then 4, etc., until at least one winner is found. This variant is known as "Must Win". It displays the drawn numbers and print a list of winners (ID number and agency code), ordered in ascending order by the bettor's ID number and agency code as a secondary key.
+## Installation
 
-The program also shows a list of participating agencies and the number of bettors who chose each of them. This list will be ordered from highest to lowest according to the number of bettors each agency has.
+1. **Clone the repository**:
+    ```sh
+    git clone https://github.com/JoacoMarc/py-Lottery.git
+    cd py-Lottery
+    ```
 
-As an example, a betting file with 100,000 records called "apuestas.txt" is provided. Keep in mind that the program works for this or any other file that respects the indicated format, regardless of the number of records.
+2. **Install required dependencies**:
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+## Usage
+
+1. **Run the lottery script**:
+    ```sh
+    python lottery.py
+    ```
+
+2. **Follow the menu prompts**:
+    - Choose options to view numbers, winners, agencies, or create an agency file.
+    - Interact with the program through the terminal.
+
+## Example Menu
+
+```
+=============================================================
+Bienvenido a Loto Plus / Loterìa de la Ciudad de Buenos Aires
+=============================================================
+
+Seleccione una opción:
+1) Para ver los números sorteados
+2) Para ver los ganadores
+3) Para ver las agencias participantes
+4) Para crear un archivo con las agencias participantes
+```
+
+## Code Overview
+
+### Functions
+
+- **menu**: Displays the menu and returns the user's choice.
+- **sorteo_de_numeros**: Recursively draws 6 unique numbers within a specified range.
+- **rellenar_matriz**: Fills a matrix with the drawn numbers.
+- **leer_archivo**: Reads the bets from a file, identifies winners, and counts bets per agency.
+- **imprimir_ticket**: Prints the drawn numbers in a formatted ticket.
+- **imprimir_ganadores**: Prints the list of winners.
+- **crear_archivo_agencias**: Creates a text file listing agencies and the number of participants.
+- **ordenar**: Helper function to sort winners by their DNI.
+
+### Main Program
+
+- **Exception Handling**: Manages file operations and user input errors.
+- **Game Loop**: Continuously displays the menu until the user decides to exit.
+- **File Operations**: Reads the "apuestas.txt" file to get participant data.
+
+## Example Output
+
+```
+=============================================================
+Bienvenido a Loto Plus / Loterìa de la Ciudad de Buenos Aires
+=============================================================
+
+Seleccione una opción:
+1) Para ver los números sorteados
+2) Para ver los ganadores
+3) Para ver las agencias participantes
+4) Para crear un archivo con las agencias participantes
+
+1
++------------------------------------------------+
+|                 Loto Plus                      |
+|                 SORTEO 3158 del 14/11/2023     |
+|                 14/11/2023                     |
+|     5  12  18  24  30  37                      |
+|                 TOTAL:              $40.00     |
+|     ID TICKET: 171 006 514 045 002 358/0272    |
+|     AB0000001-0167003-10140191-1568-0115       |
++------------------------------------------------+
+...
+```
+
+---
+
+Enjoy the game and happy coding!
