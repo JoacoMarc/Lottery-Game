@@ -22,12 +22,16 @@ Welcome to **py-Lottery**, your very own Python-powered lottery game inspired by
     cd py-Lottery
     ```
 
-2. **Install required dependencies**:
+2. **Extract the assets**:
+   - **Important:** After cloning, make sure to **extract** any `.zip` files **directly into the project directory**. This will ensure that all necessary files are in the right place.
+
+3. **Install required dependencies**:
     ```sh
     pip install -r requirements.txt
     ```
+   - **Reminder:** Ensure that all libraries listed in `requirements.txt` are installed to avoid any issues running the program.
 
-3. **Prepare the assets**:
+4. **Prepare the assets**:
    - Ensure the lottery ball images (`ball_0.png` to `ball_50.png`) are located in the `Balls_png` folder within the project directory.
    - Place the `apuestas.xlsx` file in the project directory, containing participant data with columns for DNI, agency, and six lottery numbers.
 
@@ -68,5 +72,4 @@ The py-Lottery GUI is designed to be both fun and functional, with vibrant color
 
 - **🎉 Number Consistency**: Once numbers are drawn, they remain consistent, ensuring fairness across the game.
 - **💾 Reliable File Handling**: Manages your Excel files with care, preventing errors and data loss.
-
 
