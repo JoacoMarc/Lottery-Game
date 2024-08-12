@@ -1,25 +1,107 @@
 import random
-from colorama import Fore, Style, init, Back
+import tkinter as tk
+from tkinter import messagebox
+import pandas as pd
+from colorama import init
+from PIL import Image, ImageTk
+import os
 
 # Inicializa Colorama
 init(autoreset=True)
 
-def menu():
-    # Muestra el menú con opciones
-    print(Fore.MAGENTA + Style.BRIGHT + "=============================================================")
-    print(Fore.CYAN + Style.BRIGHT + "Bienvenido a Loto Plus / Loterìa de la Ciudad de Buenos Aires")
-    print(Fore.MAGENTA + Style.BRIGHT + "=============================================================", end="\n\n")
-    print(Fore.LIGHTGREEN_EX + Style.BRIGHT + "Seleccione una opción:", end="\n")
-    print(Fore.YELLOW + "1)" + Style.RESET_ALL + " Para ver los números sorteados")
-    print(Fore.YELLOW + "2)" + Style.RESET_ALL + " Para ver los ganadores")
-    print(Fore.YELLOW + "3)" + Style.RESET_ALL + " Para ver las agencias participantes")
-    print(Fore.YELLOW + "4)" + Style.RESET_ALL + " Para crear un archivo con las agencias participantes", end="\n\n")
-    input_usuario = int(input(""))
+class LotoPlusApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Loto Plus")
+        self.geometry("700x500")
+        self.configure(bg="#f0f0f0")
+        
+        # Cargar imágenes de bolas (más grandes)
+        self.balls_images = [ImageTk.PhotoImage(Image.open(f"C:/Users/joaco/Desktop/Python/Projects/Lottery-Project/Balls_png/ball_{i}.png").resize((135, 135))) for i in range(51)]
 
-    return input_usuario
+        # Inicializar lista de números sorteados y ganadores
+        self.lista_numeros = []
+        self.lista_ganadores = []
+        self.agencias = {}
 
-def sorteo_de_numeros(n=6, rango=41, lista_actual=[]):
-    # Realiza un sorteo recursivo de 6 números, sin repetir números
+        # Interfaz del menú
+        self.create_widgets()
+    
+    def create_widgets(self):
+        # Título
+        title_label = tk.Label(self, text="Bienvenido a Loto Plus", font=("Arial", 24, "bold"), fg="blue", bg="#f0f0f0")
+        title_label.pack(pady=20)
+
+        subtitle_label = tk.Label(self, text="Lotería de la Ciudad de Buenos Aires", font=("Arial", 16), fg="black", bg="#f0f0f0")
+        subtitle_label.pack(pady=10)
+
+        # Botones del menú
+        button_frame = tk.Frame(self, bg="#f0f0f0")
+        button_frame.pack(pady=20)
+
+        btn_ver_numeros = tk.Button(button_frame, text="Ver Números Sorteados", command=self.show_numbers, font=("Arial", 14), bg="#4CAF50", fg="white", padx=10, pady=10)
+        btn_ver_numeros.grid(row=0, column=0, padx=10, pady=10)
+
+        btn_ver_ganadores = tk.Button(button_frame, text="Ver Ganadores", command=self.show_winners, font=("Arial", 14), bg="#2196F3", fg="white", padx=10, pady=10)
+        btn_ver_ganadores.grid(row=0, column=1, padx=10, pady=10)
+
+    def show_numbers(self):
+        # Check if numbers have already been drawn
+        if not self.lista_numeros:
+            self.lista_numeros = sorteo_de_numeros()
+
+        self.animate_drawing()
+
+    def animate_drawing(self):
+        # Crear ventana para mostrar la animación con tamaño más grande
+        self.draw_window = tk.Toplevel(self)
+        self.draw_window.title("Sorteo")
+        self.draw_window.geometry("1000x400")  # Aumenta el tamaño de la ventana
+        self.draw_window.configure(bg="#f0f0f0")
+        
+        # Espacio para mostrar las bolas
+        self.ball_labels = [tk.Label(self.draw_window, bg="#f0f0f0") for _ in range(6)]
+        for label in self.ball_labels:
+            label.pack(side="left", padx=10)
+
+        self.update_balls()
+
+    def update_balls(self, i=0):
+        if i < len(self.lista_numeros):
+            num = self.lista_numeros[i]
+            if 0 <= num < len(self.balls_images):  # Check to ensure num is within the correct range
+                self.ball_labels[i].config(image=self.balls_images[num])
+            else:
+                print(f"Warning: Generated number {num} is out of range.")
+            self.after(500, self.update_balls, i+1)  # Animar con un retraso de 0.5 segundos por bola
+        else:
+            self.draw_window.after(2000, self.draw_window.destroy)  # Cerrar la ventana de sorteo después de 2 segundos
+
+    def show_winners(self):
+        if not self.lista_ganadores:  # Calculate winners only if not already calculated
+            try:
+                self.lista_ganadores, self.agencias = leer_archivo_excel("C:/Users/joaco/Desktop/Python/Projects/Lottery-Project/apuestas.xlsx", self.lista_numeros)
+            except FileNotFoundError:
+                messagebox.showerror("Error", "Archivo de apuestas no encontrado.")
+                return
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+                return
+
+        self.display_winners()
+
+    def display_winners(self):
+        # Ventana para mostrar ganadores con tamaño más grande
+        winners_window = tk.Toplevel()
+        winners_window.title("Ganadores")
+        winners_window.geometry("800x600")  # Aumenta el tamaño de la ventana
+        
+        tk.Label(winners_window, text="Ganadores", font=("Arial", 18, "bold")).pack(pady=10)
+        
+        for i, ganador in enumerate(self.lista_ganadores, start=1):
+            tk.Label(winners_window, text=f"{i}. DNI: {ganador['DNI']} - AGENCIA: {ganador['AGENCIA']}", font=("Arial", 14)).pack()
+
+def sorteo_de_numeros(n=6, rango=50, lista_actual=[]):
     if n == 0:
         return lista_actual
     else:
@@ -30,178 +112,27 @@ def sorteo_de_numeros(n=6, rango=41, lista_actual=[]):
         else:
             return sorteo_de_numeros(n, rango, lista_actual)
 
-def rellenar_matriz(matriz_num_sorteados, filas, columnas, lista_sorteados):
-    # Rellena una matriz con los números sorteados
-    i = 0
-    for f in range(filas):
-        fila = []
-        for c in range(columnas):
-            fila.append(lista_sorteados[i])
-            i += 1
-        matriz_num_sorteados.append(fila)
-    return matriz_num_sorteados
-
-
-def leer_archivo(archivo):
-    # Lee el archivo de apuestas, identificando ganadores y contando apuestas por agencia
-    l = archivo.readline()
-    
+def leer_archivo_excel(archivo, lista_numeros):
+    # Leer archivo Excel de apuestas, identificando ganadores y contando apuestas por agencia
+    df = pd.read_excel(archivo)
     ganadores = []
     agencias = {}
-    cont=0
     mayor_numero_coincidente = 0
-    while l:
-        numero_coincidente = 0
 
-        linea = l.split(";")
-        linea[-1] = linea[-1].rstrip('\n')
+    for index, row in df.iterrows():
+        numero_coincidente = sum(num in lista_numeros for num in row[2:])
+        ganador = {"DNI": row["DNI"], "AGENCIA": row["AGENCIA"]}
 
-        for i in range(2, len(linea)):
-            num = int(linea[i])
-            if num in lista_numeros:
-                numero_coincidente += 1
-
-        ganador={ "DNI": linea[0],
-        "AGENCIA": linea[1],
-        }
-        
         if numero_coincidente == mayor_numero_coincidente:
             ganadores.append(ganador)
         elif numero_coincidente > mayor_numero_coincidente:
-            ganadores = []
-            ganadores.append(ganador)
+            ganadores = [ganador]
             mayor_numero_coincidente = numero_coincidente
 
-        
-        try:
-            agencias[str(linea[1])] = agencias[str(linea[1])]+1
-        except KeyError:
-            agencias[str(linea[1])] = 1
-
-        cont+=1
-
-
-        l = archivo.readline()
+        agencias[row["AGENCIA"]] = agencias.get(row["AGENCIA"], 0) + 1
 
     return ganadores, agencias
 
-
-def imprimir_ticket(matriz):    
-    # Convertir cada fila de la matriz en una cadena y unirlas con saltos de línea
-    numeros_sorteados = " ".join(" ".join(str(num) for num in fila) for fila in matriz)
-    # Crear contenido del ticket
-    lines = [
-        "Loto Plus",
-        "SORTEO 3158 del 14/11/2023",
-        "14/11/2023",
-        numeros_sorteados,
-        "TOTAL:              $40.00",
-        "ID TICKET: 171 006 514 045 002 358/0272",
-        "AB0000001-0167003-10140191-1568-0115"
-    ]
-
-    max_width = max(len(line) for line in lines)
-    border = "+" + "-" * max_width + "+"
-    separator = "|" + " " * max_width + "|"
-
-
-    print(Back.WHITE + Fore.BLACK + border)
-    for line in lines:
-        centered_line = line.center(max_width)
-        print(Back.WHITE + Fore.BLACK + "|" + Fore.GREEN + Style.BRIGHT + centered_line + Back.WHITE + Fore.BLACK + "|")
-        print(Back.WHITE + Fore.BLACK + separator)
-    print(Back.WHITE + Fore.BLACK + border)
-
-
-def imprimir_ganadores(lista_ganadores):
-    # Imprime la lista de ganadores, mostrando DNI y agencia
-    cont = 0
-    print(Fore.GREEN + Style.BRIGHT + "\nGANADORES: ", end="\n\n")
-    for ganador in lista_ganadores:
-        cont += 1
-        print(cont, "DNI:" , ganador["DNI"] , "   AGENCIA:",ganador["AGENCIA"])
-
-
-def crear_archivo_agencias(agencias):
-    # Crea un archivo de texto con la lista de agencias y la cantidad de apostadores en cada una
-    with open("agencias.txt", "w") as archivo_agencias:
-        for agencia, cantidad in agencias.items():
-            archivo_agencias.write(f"{agencia}: {cantidad} apostadores\n")
-
-
-def ordenar(e):
-    # Función de ayuda para ordenar por DNI
-    return e["DNI"]
-
-# Manejo de excepciones y flujo principal del programa
-try:
-    archivo = open("apuestas.txt", "rt")
-
-    while True:
-
-        try:
-            
-            filas = 2
-            columnas = 3
-            matriz_num_sorteados = []
-
-            lista_numeros = sorteo_de_numeros()
-
-            lista_ganadores, agencias =(leer_archivo(archivo))
-
-            while lista_ganadores == []:
-                lista_numeros = sorteo_de_numeros()
-                lista_ganadores, agencias =(leer_archivo(archivo))
-
-            matriz = rellenar_matriz(matriz_num_sorteados, filas, columnas, lista_numeros)
-
-            lista_ganadores.sort(key=ordenar)
-            agencias = dict(sorted(agencias.items(), key=lambda x: x[1], reverse=True))
-
-
-            input_usuario = menu()
-            input_dos = 0
-
-            while input_usuario != -1 and input_dos != -1:
-                if input_usuario not in range(1,5):
-                    print("Ingrese una opcion valida")
-                    input_usuario = menu()
-                if input_usuario == 1:
-                    imprimir_ticket(matriz)
-                    input_dos = int(input("\nIngrese 0 para volver al menu o -1 para terminar: "))
-                    if input_dos == 0:
-                        input_usuario = menu()
-                elif input_usuario == 2:
-                    imprimir_ganadores(lista_ganadores)
-                    input_dos = int(input("\nIngrese 0 para volver al menu o -1 para terminar: "))
-                    if input_dos == 0:
-                        input_usuario = menu()
-                elif input_usuario == 3:
-                    print(agencias)
-                    input_dos = int(input("\nIngrese 0 para volver al menu o -1 para terminar: "))
-                    if input_dos == 0:
-                        input_usuario = menu()
-                elif input_usuario==4:
-                    crear_archivo_agencias(agencias)
-                    input_dos = int(input("\nIngrese 0 para volver al menu o -1 para terminar: "))
-                    if input_dos == 0:
-                        input_usuario = menu()
-
-            break
-
-        except ValueError:
-            print()
-            print("Error: Ingrese un numero, 1, 2 o 3")
-            print()
-        except Exception as e:
-            print()
-            print("Error: ", e)
-            print()
-except FileNotFoundError:
-    print()
-    print("No se encontro el archivo")
-    print()
-except IOError:
-    print("Error al cerrar/abrir el archivo")
-finally:
-   archivo.close()
+if __name__ == "__main__":
+    app = LotoPlusApp()
+    app.mainloop()
